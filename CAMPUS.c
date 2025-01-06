@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-//------------------------------------------------------------JADWAL-----------------------------------------------------------------------
+
 typedef struct {
     char hari[100][20];
     char jam[100][20];
@@ -13,6 +13,60 @@ typedef struct {
 Jadwal jadwalList;
 int jumlahJadwal = 0;
 
+struct Tugas {
+    char namaTugas[50];
+    char jenisTugas[30];
+    char deadline[20];
+    char penanggungJawab[50];
+};
+
+struct Tugas tugasList[100];
+int jumlahTugas = 0;
+
+typedef struct {
+    char isiNote[100][255];
+    char tanggalNote[100][20]; // Format tanggal DD/MM/YYYY
+} Note;
+
+Note noteList;
+int jumlahNote = 0;
+//------------------------------------------------------------JADWAL-----------------------------------------------------------------------
+
+
+void cekTanggal(char* hariIni) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    sprintf(hariIni, "%02d/%02d/%04d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+}
+
+void notifikasi() {
+    char hariIni[20];
+    cekTanggal(hariIni);
+
+    printf("\n=== Notifikasi Hari Ini (%s) ===\n", hariIni);
+    int found = 0;
+    for (int i = 0; i < jumlahJadwal; i++) {
+        if (strcmp(jadwalList.tanggal[i], hariIni) == 0) {
+            printf("  Mata Kuliah : %s\n", jadwalList.mataKuliah[i]);
+            printf("  Jam         : %s\n", jadwalList.jam[i]);
+            printf("  Ruangan     : %s\n\n", jadwalList.ruangan[i]);
+            found = 1;
+        }
+    }
+
+    for (int i = 0; i < jumlahTugas; i++) {
+        if (strcmp(tugasList[i].deadline, hariIni) == 0) {
+            printf("  Tugas : %s\n", tugasList[i].namaTugas);
+            printf("  Deadline : %s\n", tugasList[i].deadline);
+            printf("  Penanggung Jawab : %s\n\n", tugasList[i].penanggungJawab);
+            found = 1;
+        }
+    }
+
+    if (!found) {
+        printf("Tidak ada jadwal untuk hari ini.\n");
+    }
+}
 
 void tambahJadwal(){
     if(jumlahJadwal < 100){
@@ -167,15 +221,7 @@ void kelolaJadwal() {
     }
 }
 //---------------------------------------------------------------------TUGAS-------------------------------------------------------------------------
-struct Tugas {
-    char namaTugas[50];
-    char jenisTugas[30];
-    char deadline[20];
-    char penanggungJawab[50];
-};
 
-struct Tugas tugasList[100];
-int jumlahTugas = 0;
 
 // menampilkan tugas
 void tampilkanTugas() {
@@ -193,7 +239,6 @@ void tampilkanTugas() {
         printf("  Penanggung Jawab: %s\n\n", tugasList[i].penanggungJawab);
     }
     }
-    
 }
 
 // tambah tugas
@@ -217,6 +262,60 @@ void tambahTugas() {
     jumlahTugas++;
 }
 
+void editTugas() {
+    int index;
+    if (jumlahTugas == 0) {
+        printf("\nTidak ada Tugas untuk diedit!\n");
+        return;
+    }
+    printf("Masukkan nomor tugas yang ingin diedit (1 - %d): ", jumlahTugas);
+    scanf("%d", &index);
+    
+    if (index < 1 || index > jumlahTugas) {
+        printf("Tugas tidak ditemukan.\n");
+        return;
+    }
+    index--; 
+
+    printf("\nEdit Tugas Ke-%d:\n", index + 1);
+    printf("Masukkan Nama Tugas baru: ");
+    scanf(" %[^\n]", tugasList[index].namaTugas);
+    printf("Masukkan Jenis Tugas baru (kelompok/individu): ");
+    scanf(" %[^\n]", tugasList[index].jenisTugas);
+    printf("Masukkan Deadline baru (DD/MM/YYYY): ");
+    scanf(" %[^\n]", tugasList[index].deadline);
+    printf("Masukkan Penanggung Jawab baru: ");
+    scanf(" %[^\n]", tugasList[index].penanggungJawab);
+    
+    printf("Tugas berhasil diedit!\n");
+}
+
+void hapusTugas() {
+    int index;
+    if (jumlahTugas == 0) {
+        printf("\nTidak ada Tugas untuk dihapus!\n");
+        return;
+    }
+    printf("Masukkan nomor tugas yang ingin dihapus (1 - %d): ", jumlahTugas);
+    scanf("%d", &index);
+
+    if (index < 1 || index > jumlahTugas) {
+        printf("Tugas tidak ditemukan.\n");
+        return;
+    }
+    index--;
+
+    for (int i = index; i < jumlahTugas - 1; i++) {
+        strcpy(tugasList[i].namaTugas, tugasList[i + 1].namaTugas);
+        strcpy(tugasList[i].jenisTugas, tugasList[i + 1].jenisTugas);
+        strcpy(tugasList[i].deadline, tugasList[i + 1].deadline);
+        strcpy(tugasList[i].penanggungJawab, tugasList[i + 1].penanggungJawab);
+    }
+
+    jumlahTugas--;
+    printf("Tugas berhasil dihapus!\n");
+}
+
 
 void kelolaTugas() {
     int pilihan;
@@ -225,7 +324,8 @@ void kelolaTugas() {
         printf("\n=== Kelola Tugas ===\n");
         printf("1. Tambah Tugas\n");
         printf("2. Lihat Daftar Tugas\n");
-        printf("3. Keluar\n");
+        printf("3. Edit Tugas\n");
+        printf("4. Keluar\n");
         printf("Pilihan: ");
         scanf("%d", &pilihan);
 
@@ -237,15 +337,35 @@ void kelolaTugas() {
                 tampilkanTugas();
                 break;
             case 3:
-                printf("\nKeluar dari menu kelola tugas.\n");
+                editTugas();
                 break;
+            case 4:
+                printf("\nKeluar dari menu kelola tugas.\n");
+                return;
             default:
                 printf("\nPilihan tidak valid!\n");
+                break;
         }
     } while (pilihan != 3);
 
 }
 //-------------------------------------------------KALKULATOR  AKADEMIK-----------------------------------------------------------------------
+
+float konversiPredikatKeNilai(char predikat[]) {
+   
+    if (strcmp(predikat, "A") == 0) return 4.0;
+    if (strcmp(predikat, "A-") == 0) return 3.7;
+    if (strcmp(predikat, "B+") == 0) return 3.3;
+    if (strcmp(predikat, "B") == 0) return 3.0;
+    if (strcmp(predikat, "B-") == 0) return 2.7;
+    if (strcmp(predikat, "C+") == 0) return 2.3;
+    if (strcmp(predikat, "C") == 0) return 2.0;
+    if (strcmp(predikat, "C-") == 0) return 1.7;
+    if (strcmp(predikat, "D") == 0) return 1.0;
+    if (strcmp(predikat, "E") == 0) return 0.0;
+
+    return -1; 
+}
 
 void hitungIPK() {
     int jumlahMataKuliah;
@@ -255,14 +375,21 @@ void hitungIPK() {
     scanf("%d", &jumlahMataKuliah);
 
     for (int i = 0; i < jumlahMataKuliah; i++) {
-        float nilai;
+        char predikat[3];
         int sks;
 
-        printf("Masukkan nilai mata kuliah ke-%d (dalam skala 4): ", i + 1);
-        scanf("%f", &nilai);
+        printf("Masukkan predikat mata kuliah ke-%d (contoh: A, B+, C-): ", i + 1);
+        scanf("%s", predikat);
 
         printf("Masukkan jumlah SKS mata kuliah ke-%d tersebut: ", i + 1);
         scanf("%d", &sks);
+
+        float nilai = konversiPredikatKeNilai(predikat);
+        if (nilai == -1) {
+            printf("Predikat tidak valid. Ulangi input.\n");
+            i--; 
+            continue;
+        }
 
         totalNilai += nilai * sks;
         totalSKS += sks;
@@ -271,7 +398,6 @@ void hitungIPK() {
     float ipk = totalNilai / totalSKS;
     printf("IPK yang diperoleh: %.2f\n", ipk);
 }
-
 
 void hitungUTSUAS() {
     float uts, uas;
@@ -324,21 +450,308 @@ void kalkulatorAkademik() {
                 break;
             case 4:
                 printf("Keluar dari program.\n");
-                break;
+                return;
             default:
                 printf("Pilihan tidak valid.\n");
+                break;
         }
     } while (pilihan != 4);
 
 }
 //---------------------------------------------------------NOTESSSSSSSSSS-----------------------------------------
+
+
+void tambahNote() {
+    char tambahkanTanggal;
+
+    if (jumlahNote >= 100) {
+        printf("\nDaftar Note penuh!\n");
+        return;
+    }
+
+    printf("\nMasukkan isi Note: ");
+    scanf(" %[^\n]", noteList.isiNote[jumlahNote]);
+
+    printf("Apakah Anda ingin menambahkan tanggal pada catatan ini? (y/n): ");
+    scanf(" %c", &tambahkanTanggal);
+
+    if (tambahkanTanggal == 'y' || tambahkanTanggal == 'Y') {
+        printf("Masukkan tanggal (DD/MM/YYYY): ");
+        scanf(" %[^\n]", noteList.tanggalNote[jumlahNote]);
+    } else {
+        strcpy(noteList.tanggalNote[jumlahNote], ""); // Tidak ada tanggal
+    }
+
+    jumlahNote++;
+    printf("\nCatatan berhasil ditambahkan!\n");
+}
+
+void lihatNote() {
+    int konfirmasi = 0;
+    if (jumlahNote == 0) {
+        printf("\nTidak ada note yang tersedia.\n");
+        return;
+    }
+
+    printf("\n=== Daftar Catatan ===\n");
+    for (int i = 0; i < jumlahNote; i++) {
+        printf("Catatan %d:\n", i + 1);
+        printf("  Isi       : %s\n", noteList.isiNote[i]);
+        if (strlen(noteList.tanggalNote[i]) > 0) {
+            printf("  Tanggal   : %s\n", noteList.tanggalNote[i]);
+        } else {
+            printf("  Tanggal   : Tidak ditambahkan\n");
+        }
+        printf("\n");
+        printf("Kembali? (y/n) :  ");
+        scanf(" %c", &konfirmasi);
+        if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+        {
+            printf("\nKembali\n");
+            return;
+        }
+        }
+        }
+}
+
 void notes() {
-    printf("\n--Notes--\n");
-    printf("Fitur ini akan memungkinkan Anda mencatat hal penting.\n");
-}///--------------------------------------------------------------------------------------------KONTAK DOSENNNNNN-----------------------------
+    int pilihan;
+
+    do {
+        printf("\n=== Kelola Catatan ===\n");
+        printf("1. Tambah Catatan\n");
+        printf("2. Lihat Catatan\n");
+        printf("3. Keluar\n");
+        printf("Pilihan: ");
+        scanf("%d", &pilihan);
+
+        switch (pilihan) {
+            case 1:
+                tambahNote();
+                break;
+            case 2:
+                lihatNote();
+                break;
+            case 3:
+                printf("\nKeluar dari menu kelola catatan.\n");
+                break;
+            default:
+                printf("\nPilihan tidak valid!\n");
+                break;
+        }
+    } while (pilihan != 3);
+}
+
+//----------------------------------------------------------------------------------------KONTAK DOSENNNNNN-----------------------------
 void materiKontakDosen() {
-    printf("\n--Akses Materi & Kontak Dosen--\n");
-    printf("Fitur ini memungkinkan Anda mengakses materi kuliah dan informasi kontak dosen.\n");
+    int pilihan, pilihan1, pilihan2, konfirmasi;
+    do{
+        printf("\n ===MATERI DAN KONTAK DOSEN===");
+        printf("\n\n1. Materi Pembelajaran\n2. Kontak Dosen\n3. Kembali Ke menu utama\n");
+        printf("Masukan Pilihan : ");
+        scanf("%d", &pilihan2);
+        
+        if (pilihan2 == 1){
+            do{
+                printf("\n    ===MATERI PEMBELAJARAN===    \n1. Algoritma Dan Pemrograman Dasar\n2. Elektronika\n3. Pendidikan Agama Islam\n4. Rangkaian Listrik\n5. Matematika Teknik\n6. Pendidikan pancasila\n7. Pendidikan Agama kristen\n8. File PDF Materi Pembelajaran\n9. Kembali Ke menu sebelumnya\n");
+                printf("Masukan angka pilihan : ");
+                scanf("%d", &pilihan1);
+                if (pilihan1 == 1) {
+                    printf("youtube :\n1. Web Programing UNPAS\n2. Kelas Terbuka\n3. Free Code Camp\n4. CS Dojo\n5. Thenewboston\nWeb :\n1. https://www.CodeCademy.com \n2. https://www.Coursera.com \n3. https://www.CodeWars.com \n4. https://www.Udemy.com \n5. https://www.Github.com");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 2){
+                    printf("youtube :\n1. MAKE\n2. EEVBLOG\n3. GREATSCOTT\n4. ADAFRUIT\n5. MJLORTON\nWeb :\n1. https://www.Allaboutcircuit.com \n2. https://www.Electronicstheory.com \n3. https://www.Learn.sparkfun.com \n4. https://www.Electronics-lab.com \n5. https://Instructable.com");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 3){
+                    printf("Youtube :\n1. Ustadz Abdul Somad\n2. Yufid TV\n3. Kisah Islam\n4. Al-Bahjah TV\n5. Khalid Basalamah Official\nWeb :\n1. https://pesantrenalirsyad.org/category/artikel-islam/ \n2. https://www.kompasiana.com/tag/muslimah \n3. https://yufid.com/en/ \n4. https://konsultasisyariah.com/ \n5. https://yufid.tv/");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 4){
+                    printf("Youtube :\n1. Class Time Off < udah paling best pokoknya ><\nWeb :\n1. https://www.kmtech.id/ \n2. https://Udemy.com \n3. https://PhEt.com \n4. https://Superprof.co.id \n5. https://indobot.co.id/");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 5){
+                    printf("Youtube :\n1. kuliahMatematika\nWeb :\n1. https://tutorial.math.lamar.edu/ \n2. https://www.ArtofProblemSolving.com \n3. https://www.MathPickle.com \n4. https://www.HoodaMath.com \n5. https://www.Arcademics.com");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 6){
+                    printf("Youtube :\n1. Pendidikan Pancasila\n2. Pendidikan dan Kewarganegaraan\n3. Channel Pancasila\n4. Civics Learning\n5. Pendidikan Moral Pancasila\nWeb :\n1. https://www.kemdikbud.go.id \n2. https://www.pancasila.id \n3. https://www.peraturan.go.id \n4. https://www.dikti.kemdikbud.go.id \n5. https://www.pusatpancasila.or.id");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 7){
+                    printf("Youtube :\n1. KanalKristen \n2. JaringanGereja \n3. Iman Kristen\n4. The Bible Project\n5. Kristen Indonesia\nWeb :\n1. https://www.gkkdbp.org \n2. https://biblegateway.com \n3. https://www.alkitab.or.id \n4. https://www.christianity.com \n5. https://www.desiringgod.org");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 8){
+                    printf("Untuk link google drive : https://drive.google.com/drive/folders/1FQVfD1k7Dz3ffNVdErME26DzbBcAlvAe");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan1 == 9)
+                {
+                    printf("kembali ke menu sebelumnya");
+                    break;
+                }
+                
+                else {
+                    printf("pilihan tidak valid ><\n");
+                }
+                }while (pilihan1 != 01235);
+
+        }else if(pilihan2 == 2){ 
+            do {
+                printf("\n\n    ===KONTAK DOSEN MATAKULIAH===    \n1. Liptia Venica, M.Pd.\n2. Muhammad Rizalul Wahid, S.Si.,M,T.\n3. Prof. Dr. Yayan Nurbayan, M.Ag.\n4. Diky Zakaria, S.Pd. M.T.\n5. Dr. Suprih Widodo, S.Si.,M.T\n6. Jennyta Catursari, M.Pd.\n7. Jojor Renta Maranatha, S.Pd. M.Pd.\n8. Kembali ke menu sebelumnya \nMasukan pilihan : "); 
+                scanf("%d", &pilihan);
+                if (pilihan == 1) {
+                    printf("Nomor Whatsapp : 085222333300\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 2){
+                    printf("Nomor Whatsapp : 082269333396\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 3){
+                    printf("Nomor Whatsapp : 081394147474\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 4){
+                    printf("Nomor Whatsapp : 081321439833\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 5){
+                    printf("Nomor Whatsapp : 085624848424\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 6){
+                    printf("Nomor Whatsapp :081313093905\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 7){
+                    printf("Nomor Whatsapp : 085292560667\n");
+                    printf("\n");
+                    printf("Kembali? (y/n) :  ");
+                    scanf(" %c", &konfirmasi);
+                    if (konfirmasi == 'y' || konfirmasi == 'Y') {   
+                    {
+                        printf("\nKembali\n");
+                        return;
+                    }
+                    }
+                }else if (pilihan == 8){
+                    break;
+                }else {
+                    printf ("pilihan tidak valid ><\n");
+                }
+                }while (pilihan != 01235);
+        } else if (pilihan2 == 3)
+        {
+            printf("Kembali ke menu utama");
+            return;
+        }
+        else{
+            printf("Pilihan Tidak Valid ><");
+        }
+    
+    }while (pilihan != 01235);
 }
 
 int main (){
@@ -372,16 +785,19 @@ int main (){
                     }
                     printf(" \nSign In berhasil!\n");
                     signIn = 1;
+
                 }
                 while (signIn == 1)
                 {
-                       halamanAwal = 0;
-                       dashboard = 1;
-                       printf("\n--Dashboard--\n \n");
-                       printf("\n--Pilih Fitur y--\n \n");
-                       printf("1. Kelola Jadwal\n2. Kelola Tugas\n3. Kalkulator Akademik\n4. Notes \n5. Akses Materi & Kontak Dosen \n6. Keluar\n Pilih Opsi: ");
-                       scanf("%d", &opsiDashboard);
-                        switch (opsiDashboard) {
+                    halamanAwal = 0;
+                    dashboard = 1;
+                    notifikasi();
+
+                    printf("\n--Dashboard--\n \n");
+                    printf("\n--Pilih Fitur--\n \n");
+                    printf("1. Kelola Jadwal\n2. Kelola Tugas\n3. Kalkulator Akademik\n4. Notes \n5. Akses Materi & Kontak Dosen \n6. Keluar\n Pilih Opsi: ");
+                    scanf("%d", &opsiDashboard);
+                    switch (opsiDashboard) {
                     case 1:
                         kelolaJadwal();
                         break;
