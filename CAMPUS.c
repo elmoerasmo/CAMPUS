@@ -455,6 +455,7 @@ void kelolaTugas() {
         printf("1. Tambah Tugas\n");
         printf("2. Lihat Daftar Tugas\n");
         printf("3. Edit Tugas\n");
+        printf("4. Hapus Tugas\n");
         printf("4. Keluar\n");
         printf("Pilihan: ");
         scanf("%d", &pilihan);
@@ -470,13 +471,16 @@ void kelolaTugas() {
                 editTugas();
                 break;
             case 4:
+                hapusTugas();
+                break;
+            case 5:
                 printf("\nKeluar dari menu kelola tugas.\n");
                 return;
             default:
                 printf("\nPilihan tidak valid!\n");
                 break;
         }
-    } while (pilihan != 3);
+    } while (pilihan != 5);
 
 }
 //-------------------------------------------------KALKULATOR  AKADEMIK-----------------------------------------------------------------------
@@ -611,9 +615,8 @@ void tambahNote() {
     } else {
         strcpy(noteList.tanggalNote[jumlahNote], ""); 
     }
-
-    jumlahNote++;
     printf("\nCatatan berhasil ditambahkan!\n");
+    jumlahNote++;
 }
 
 void lihatNote() {
@@ -633,7 +636,7 @@ void lihatNote() {
             printf("  Tanggal   : Tidak ditambahkan\n");
         }
         printf("\n");
-        printf("Kembali? (y/n) :  ");
+        printf("Kembali? (y) :  ");
         scanf(" %c", &konfirmasi);
         if (konfirmasi == 'y' || konfirmasi == 'Y') {   
         {
@@ -644,6 +647,74 @@ void lihatNote() {
         }
 }
 
+
+void editNote() {
+    int index;
+    char tambahkanTanggal;
+
+    if (jumlahNote == 0) {
+        printf("\nTidak ada catatan yang tersedia untuk diedit.\n");
+        return;
+    }
+
+    printf("\nMasukkan nomor catatan yang ingin diedit (1-%d): ", jumlahNote);
+    scanf("%d", &index);
+
+    if (index < 1 || index > jumlahNote) {
+        printf("\nNomor catatan tidak valid!\n");
+        return;
+    }
+
+    index--; 
+    printf("\nCatatan :\n");
+    printf("  Isi       : %s\n", noteList.isiNote[index]);
+    
+    if (strlen(noteList.tanggalNote[index]) > 0) {
+        printf("  Tanggal   : %s\n", noteList.tanggalNote[index]);
+    } else {
+        printf("  Tanggal   : Tidak ditambahkan\n");
+    }
+
+    printf("\nMasukkan isi catatan baru: ");
+    scanf(" %[^\n]", noteList.isiNote[index]);
+
+    printf("Apakah Anda ingin mengubah tanggal catatan ini? (y/n): ");
+    scanf(" %c", &tambahkanTanggal);
+
+    if (tambahkanTanggal == 'y' || tambahkanTanggal == 'Y') {
+        printf("Masukkan tanggal baru (DD/MM/YYYY): ");
+        scanf(" %[^\n]", noteList.tanggalNote[index]);
+    }
+
+    printf("\nCatatan berhasil diedit!\n");
+}
+
+void hapusNote() {
+    int index;
+
+    if (jumlahNote == 0) {
+        printf("\nTidak ada catatan yang tersedia untuk dihapus.\n");
+        return;
+    }
+
+    printf("\nMasukkan nomor catatan yang ingin dihapus (1-%d): ", jumlahNote);
+    scanf("%d", &index);
+
+    if (index < 1 || index > jumlahNote) {
+        printf("\nNomor catatan tidak valid!\n");
+        return;
+    }
+
+    index--; 
+    for (int i = index; i < jumlahNote - 1; i++) {
+        strcpy(noteList.isiNote[i], noteList.isiNote[i + 1]);
+        strcpy(noteList.tanggalNote[i], noteList.tanggalNote[i + 1]);
+    }
+
+    jumlahNote--; 
+    printf("\nCatatan berhasil dihapus!\n");
+}
+
 void notes() {
     int pilihan;
 
@@ -651,7 +722,9 @@ void notes() {
         printf("\n=== Kelola Catatan ===\n");
         printf("1. Tambah Catatan\n");
         printf("2. Lihat Catatan\n");
-        printf("3. Keluar\n");
+        printf("3. Edit Catatan\n");
+        printf("4. Hapus Catatan\n");
+        printf("5. Keluar\n");
         printf("Pilihan: ");
         scanf("%d", &pilihan);
 
@@ -663,14 +736,21 @@ void notes() {
                 lihatNote();
                 break;
             case 3:
+                editNote();
+                break;
+            case 4:
+                hapusNote();
+                break;
+            case 5:
                 printf("\nKeluar dari menu kelola catatan.\n");
                 break;
             default:
                 printf("\nPilihan tidak valid!\n");
                 break;
         }
-    } while (pilihan != 3);
+    } while (pilihan != 5);
 }
+
 
 //----------------------------------------------------------------------------------------KONTAK DOSENNNNNN-----------------------------
 void materiKontakDosen() {
@@ -679,9 +759,9 @@ void materiKontakDosen() {
         printf("\n ===MATERI DAN KONTAK DOSEN===");
         printf("\n1. Materi Pembelajaran\n2. Kontak Dosen\n3. Kembali Ke menu utama\n");
         printf("Masukan Pilihan : ");
-        scanf("%d", &pilihan2);
+        scanf("%d", &pilihan);
         
-        if (pilihan2 == 1){
+        if (pilihan == 1){
             do{
                 printf("\n    ===MATERI PEMBELAJARAN===    \n1. Algoritma Dan Pemrograman Dasar\n2. Elektronika\n3. Pendidikan Agama Islam\n4. Rangkaian Listrik\n5. Matematika Teknik\n6. Pendidikan pancasila\n7. Pendidikan Agama kristen\n8. File PDF Materi Pembelajaran\n9. Kembali Ke menu sebelumnya\n");
                 printf("Masukan angka pilihan : ");
@@ -715,7 +795,7 @@ void materiKontakDosen() {
 
             } while (konfirmasi == 'y' || konfirmasi == 'Y'); 
 
-        }else if(pilihan2 == 2){ 
+        }else if(pilihan == 2){ 
             do {
                 printf("\n\n    ===KONTAK DOSEN MATAKULIAH===    \n");
                 printf("1. Liptia Venica, S.T. M.T.\n");
@@ -729,21 +809,21 @@ void materiKontakDosen() {
                 printf("Masukan pilihan: ");
                 scanf("%d", &pilihan);
 
-                if (pilihan == 1) {
+                if (pilihan2 == 1) {
                     printf("\nNomor Whatsapp: 085222333300\n");
-                } else if (pilihan == 2) {
+                } else if (pilihan2 == 2) {
                     printf("\nNomor Whatsapp: 082269333396\n");
-                } else if (pilihan == 3) {
+                } else if (pilihan2 == 3) {
                     printf("\nNomor Whatsapp: 081394147474\n");
-                } else if (pilihan == 4) {
+                } else if (pilihan2 == 4) {
                     printf("\nNomor Whatsapp: 081321439833\n");
-                } else if (pilihan == 5) {
+                } else if (pilihan2 == 5) {
                     printf("\nNomor Whatsapp: 085624848424\n");
-                } else if (pilihan == 6) {
+                } else if (pilihan2 == 6) {
                     printf("\nNomor Whatsapp: 081313093905\n");
-                } else if (pilihan == 7) {
+                } else if (pilihan2 == 7) {
                     printf("\nNomor Whatsapp: 085292560667\n");
-                } else if (pilihan == 8) {
+                } else if (pilihan2 == 8) {
                     printf("\nKembali ke menu sebelumnya.\n");
                     break; 
                 } else {
@@ -755,7 +835,7 @@ void materiKontakDosen() {
 
             } while (konfirmasi == 'y' || konfirmasi == 'Y');
 
-        } else if (pilihan2 == 3)
+        } else if (pilihan == 3)
         {
             printf("Kembali ke menu utama");
             return;
